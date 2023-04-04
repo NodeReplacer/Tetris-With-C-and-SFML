@@ -1,0 +1,9 @@
+# ninja log v5
+1	866	7023503840000000	CMakeFiles/Test_Project.dir/main.cpp.obj	116c80494da4bb4b
+5	895	7023503840000000	CMakeFiles/Test_Project.dir/Block.cpp.obj	62b31715962158a2
+4	882	7023503840000000	CMakeFiles/Test_Project.dir/Game.cpp.obj	fe0bbaa12e2809b4
+895	1894	7023503860000000	Test_Project.exe	ec9289e2ed004102
+5	870	7023529800000000	CMakeFiles/Test_Project.dir/main.cpp.obj	bff732978c7c9b3e
+46	890	7023529800000000	CMakeFiles/Test_Project.dir/Block.cpp.obj	a907044610275cd4
+44	899	7023529800000000	CMakeFiles/Test_Project.dir/Game.cpp.obj	ca640a207f2bd4f7
+899	1794	7023529800000000	Test_Project.exe	ec9289e2ed004102
