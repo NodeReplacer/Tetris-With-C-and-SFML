@@ -6,10 +6,14 @@
 #include "Block.h"
 
 void Block::InitVariables() {
-    //Initialize a random seed using time.
+    //Initialize a random seed.
     srand(static_cast<unsigned>(time(0)));
+    this->randomGenerator = std::mt19937(randDevice());
+    this->randDistribution = std::uniform_int_distribution<int>(0,6);
+    
     this->currPos[0].x = 0;
     this->FirstPiece();
+    
 }
 
 void Block::InitShape() {
@@ -25,6 +29,49 @@ Block::Block() {
 
 Block::~Block() {
     
+}
+
+bool Block::Check() {
+    /*
+        Check if a block is still in the field. CheckLine() might seem like it overlaps. But CheckLine() checks
+        for a completed line.
+    */
+    for (int i=0;i<4;++i) {
+        if (this->currPos[i].x<0 || this->currPos[i].x>=fieldWidth || this->currPos[i].y>=fieldHeight)
+            return false;
+        else if (field[this->currPos[i].y][this->currPos[i].x])
+            return false;
+    }
+    return true;
+}
+
+void Block::RenderField(sf::RenderTarget *targetWindow) {
+    //Draw the blocks that have fallen and settled on the ground
+    for (int i=0;i<fieldHeight;++i) {
+        for (int j=0;j<fieldWidth;++j) {
+            if (field[i][j]==0) {
+                continue;
+            }
+            this->blockSprite.setTextureRect(sf::IntRect(this->field[i][j]*18,0,18,18));
+            this->blockSprite.setPosition(j*18,i*18);
+            targetWindow->draw(this->blockSprite);
+        }
+    }
+#if 0
+    // Print the array with indices
+    std::cout << "   ";
+    for (int j = 0; j < fieldWidth; j++) {
+        std::cout << j << " ";
+    }
+    std::cout << std::endl;
+    for (int i = 0; i < fieldHeight; i++) {
+        std::cout << i << ": ";
+        for (int j = 0; j < fieldWidth; j++) {
+            std::cout << this->field[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
+#endif
 }
 
 void Block::MakeShape(sf::RenderTarget* targetWindow) {
@@ -61,17 +108,6 @@ void Block::MakeShape(sf::RenderTarget* targetWindow) {
     this->dx=0;
     this->rotateFlag = false;
     
-    //Draw the blocks that have fallen and settled on the ground
-    for (int i=0;i<fieldHeight;++i) {
-        for (int j=0;j<fieldWidth;++j) {
-            if (field[i][j]==0) {
-                continue;
-            }
-            this->blockSprite.setPosition(j*18,i*18);
-            targetWindow->draw(this->blockSprite);
-        }
-    }
-    
     //Draw the current falling block.
     for (int i=0;i<4;i++) {
         //Okay now that we have the coordinates of each square
@@ -80,10 +116,10 @@ void Block::MakeShape(sf::RenderTarget* targetWindow) {
         //pixels big so that's our multiplication.
         //I don't know how to stretch the size of these images, but
         //I would like to. This is tiny.
-        this->blockSprite.setPosition(this->currPos[i].x*18,this->currPos[i].y*18);
+        this->blockSprite.setTextureRect(sf::IntRect(this->colorNum*18,0,18,18));
+        this->blockSprite.setPosition(this->currPos[i].x*18,this->currPos[i].y*18); 
         targetWindow->draw(this->blockSprite);
     }
-    
 }
 
 void Block::Move() {
@@ -134,41 +170,14 @@ void Block::RotateShape() {
     }
 }
 
-bool Block::Check() {
-    for (int i=0;i<4;++i) {
-        if (this->currPos[i].x<0 || this->currPos[i].x>=fieldWidth || this->currPos[i].y>=fieldHeight)
-            return false;
-        else if (field[this->currPos[i].y][this->currPos[i].x])
-            return false;
-    }
-    return true;
-}
-
-void Block::FirstPiece() {
-    if (!this->Check()) {
-        this->colorNum = 1+std::rand()%7;
-        int n = std::rand()%7;
-        for (int i=0;i<4;++i) {
-            currPos[i].x = shape[n][i] % 2;
-            currPos[i].y = shape[n][i] / 2;
-        }
-    }
-}
-
-void Block::Update() {
-    this->InitVariables();
-    this->InitShape();
-}
-
-void Block::Render(sf::RenderTarget* targetWindow) {
-    this->MakeShape(targetWindow);
-}
-
-void Block::Tick(float timer, float delay) {
+float Block::Tick(float timer, float delay) {
     /*
         Handle the timer tick for blocks here.
         timer and delay will be passed in from Game.cpp's Game::Update()
         function.
+        
+        Returns the timer. If timer>delay (the requirement for a tick to happen)
+        is true then the timer is set to 0 first.
     */
     //delay default is set to 0.3. Timer is measured in seconds so every 0.3 seconds.
     if (timer>delay) {
@@ -182,9 +191,10 @@ void Block::Tick(float timer, float delay) {
             for (int i=0;i<4;++i){
                 field[this->prevPos[i].y][this->prevPos[i].x] = this->colorNum;
             }
-            
-            this->colorNum = 1+std::rand()%7;
-            int n = std::rand()%7;
+
+            int n = randDistribution(randomGenerator);
+            //this->colorNum = 1+std::rand()%7;
+            this->colorNum = 1+n;
             for (int i=0;i<4;++i) {
                 currPos[i].x = shape[n][i] % 2;
                 currPos[i].y = shape[n][i] / 2;
@@ -192,4 +202,48 @@ void Block::Tick(float timer, float delay) {
         }
         timer = 0;
     }
+    return timer;
+}
+
+void Block::CheckLine() {
+    //Starting from the bottom of the field.
+    //WARNING: SFML does y positions upside down. So increasing lineContainer will actually move downwards and
+    //subtracting will move up.
+    int lineContainer = this->fieldHeight-1;
+    for (int i=this->fieldHeight-1;i>0;--i) {
+        //Count if the index at field[i][j] is filled or not.
+        int count = 0; 
+        for (int j=0;j<this->fieldWidth;++j) {
+            if (this->field[i][j]) 
+                ++count;
+            //Copy the current space to the row indicated by lineContainer.
+            //If lineContainer is below i then this moves the row we are looking at down.
+            this->field[lineContainer][j] = this->field[i][j];
+        }
+        if (count<this->fieldWidth)
+            //Then LineContainer stays behind on the row below i.
+            --lineContainer;
+    }
+}
+
+void Block::FirstPiece() {
+    if (!this->Check()) {
+        int n = randDistribution(randomGenerator);
+        //this->colorNum = 1+std::rand()%7;
+        this->colorNum = 1+n;
+        for (int i=0;i<4;++i) {
+            currPos[i].x = shape[n][i] % 2;
+            currPos[i].y = shape[n][i] / 2;
+        }
+    }
+}
+
+void Block::Update() {
+    this->InitVariables();
+    this->InitShape();
+}
+
+void Block::Render(sf::RenderTarget* targetWindow) {
+    this->RenderField(targetWindow);
+    this->MakeShape(targetWindow);
 }

@@ -13,6 +13,10 @@ void Game::initWindow() {
 }
 
 void Game::initVariables() {
+    
+    this->bgTexture.loadFromFile("images/background.png");
+    this->background.setTexture(bgTexture);
+    
     this->timer = 0;
     this->delay = 0.3;
     srand(time(0));
@@ -65,6 +69,9 @@ void Game::PollEvents() {
                     case sf::Keyboard::Up:
                         this->block.rotateFlag = true;
                         break;
+                    case sf::Keyboard::Down:
+                        this->delay = 0.05f;
+                        break;
                     // Default case (unrecognized key was pressed).
                     default:
                         break;
@@ -87,21 +94,24 @@ void Game::Update() {
     
     this->block.Move();
     this->block.RotateShape();
-    if (timer>delay) {
-        this->block.Tick(this->timer, this->delay);
-        timer=0;
-    }
+    
+    timer = this->block.Tick(this->timer, this->delay);
+    this->delay = 0.3f; //Reset the delay for tick if the user pressed the down key so they need to hold it.
+    this->block.CheckLine();
 }
 
 void Game::Render() {
     /*
         - Clear old frame
-        - Render objects (like the player)
+        - Render all blocks in through block.Render
         - Display frame in window
     */
     
     //Clear window, prep for drawing
     this->window->clear(sf::Color::White);
+    
+    //Draw the background
+    this->window->draw(background);
     
     //Render objects and other things here.
     this->block.Render(this->window);

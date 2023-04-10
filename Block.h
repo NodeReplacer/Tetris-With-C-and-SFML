@@ -7,6 +7,8 @@
 
 #include <SFML/Graphics.hpp>
 #include <cstdlib>
+#include <random>
+#include <iostream>
 
 class Block {
 private:
@@ -17,7 +19,13 @@ private:
     static const int fieldHeight = 20;
     static const int fieldWidth = 10;
 
-    int field[20][10] = {0};
+    std::random_device randDevice;
+    std::mt19937 randomGenerator;
+    std::uniform_int_distribution<int> randDistribution;
+    
+    //An array that represents our the board. 0 means it is empty. No tetris block has landed here.
+    //The other numbers just represent what color we want the block at that position to be.
+    int field[20][10] = {0}; 
     
     void InitVariables();
     void InitShape(); //Get shape of block and its sprite.
@@ -67,13 +75,15 @@ public:
         3,5,7,6, // J
         2,3,4,5, // O
     };
-    
+    bool Check(); //Check if piece is out of bounds.
+    void CheckLine();
+    void RenderField(sf::RenderTarget* targetWindow);
     void MakeShape(sf::RenderTarget* targetWindow);
-
     void Move();
     void RotateShape();
-    void Tick(float timer, float delay); 
-    bool Check(); //Check if piece is out of bounds.
+    //void Tick(float timer, float delay); 
+    float Tick(float timer, float delay);
+    
     void FirstPiece(); //Make the first piece before anything starts.
     void Update();
     void Render(sf::RenderTarget* targetWindow);

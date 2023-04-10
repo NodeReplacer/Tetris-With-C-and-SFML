@@ -38,6 +38,8 @@ private:
 
     //Game Objects
     Block block;
+    sf::Sprite background;
+    sf::Texture bgTexture;
     
     //Private functions. Technically constructors.
     void initWindow();
