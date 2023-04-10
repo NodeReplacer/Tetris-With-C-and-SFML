@@ -54,6 +54,7 @@ void Block::RenderField(sf::RenderTarget *targetWindow) {
             }
             this->blockSprite.setTextureRect(sf::IntRect(this->field[i][j]*18,0,18,18));
             this->blockSprite.setPosition(j*18,i*18);
+            this->blockSprite.move(28,31); // Offset to align with background.
             targetWindow->draw(this->blockSprite);
         }
     }
@@ -117,7 +118,8 @@ void Block::MakeShape(sf::RenderTarget* targetWindow) {
         //I don't know how to stretch the size of these images, but
         //I would like to. This is tiny.
         this->blockSprite.setTextureRect(sf::IntRect(this->colorNum*18,0,18,18));
-        this->blockSprite.setPosition(this->currPos[i].x*18,this->currPos[i].y*18); 
+        this->blockSprite.setPosition(this->currPos[i].x*18,this->currPos[i].y*18);
+        this->blockSprite.move(28,31); // Offset to align with background.
         targetWindow->draw(this->blockSprite);
     }
 }
