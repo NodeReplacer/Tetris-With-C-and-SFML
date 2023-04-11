@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <random>
 #include <iostream>
+#include <chrono>
 
 class Block {
 private:
@@ -19,7 +20,6 @@ private:
     static const int fieldHeight = 20;
     static const int fieldWidth = 10;
 
-    std::random_device randDevice;
     std::mt19937 randomGenerator;
     std::uniform_int_distribution<int> randDistribution;
     

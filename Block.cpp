@@ -2,18 +2,17 @@
 // Created by user on 3/27/2023.
 //
 
-#include <iostream>
 #include "Block.h"
 
 void Block::InitVariables() {
-    //Initialize a random seed.
-    srand(static_cast<unsigned>(time(0)));
-    this->randomGenerator = std::mt19937(randDevice());
-    this->randDistribution = std::uniform_int_distribution<int>(0,6);
+    //On my system random_device doesn't create true randomness between separate program runs. So I'm relying on this instead.
+    //std::random_device randDevice;
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     
+    this->randomGenerator = std::mt19937(seed);
+    this->randDistribution = std::uniform_int_distribution<int>(0,6);
     this->currPos[0].x = 0;
     this->FirstPiece();
-    
 }
 
 void Block::InitShape() {
@@ -194,7 +193,7 @@ float Block::Tick(float timer, float delay) {
                 field[this->prevPos[i].y][this->prevPos[i].x] = this->colorNum;
             }
 
-            int n = randDistribution(randomGenerator);
+            int n = this->randDistribution(this->randomGenerator);
             //this->colorNum = 1+std::rand()%7;
             this->colorNum = 1+n;
             for (int i=0;i<4;++i) {
@@ -230,7 +229,7 @@ void Block::CheckLine() {
 
 void Block::FirstPiece() {
     if (!this->Check()) {
-        int n = randDistribution(randomGenerator);
+        int n = this->randDistribution(this->randomGenerator);
         //this->colorNum = 1+std::rand()%7;
         this->colorNum = 1+n;
         for (int i=0;i<4;++i) {
@@ -241,8 +240,7 @@ void Block::FirstPiece() {
 }
 
 void Block::Update() {
-    this->InitVariables();
-    this->InitShape();
+    
 }
 
 void Block::Render(sf::RenderTarget* targetWindow) {
